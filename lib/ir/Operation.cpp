@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+
+#include "mini/ir/Region.h"
 namespace mini::ir {
 
 Operation::Operation(std::string name, std::vector<Value*> operands,
@@ -31,6 +33,9 @@ Operation::Operation(std::string name, std::vector<Value*> operands,
 }
 
 Operation::~Operation() {
+  // Nested operations may use values defined by this operation. Destroy them
+  // before checking this operation's results and unregistering its operands.
+  regions_.clear();
   // TODO(lesson 2.1): unregister operand uses. A result must have no remaining
   // users before its defining Operation is destroyed. Destructors must not
   // throw; an assertion is appropriate for this development-time invariant.
@@ -42,6 +47,10 @@ Operation::~Operation() {
   }
 }
 
+Region& Operation::addRegion() {
+  // TODO(lesson 2.2): create and own a Region, then return it.
+}
+
 void Operation::setOperand(std::size_t index, Value* replacement) {
   // TODO(lesson 2.1): check the index and replacement, remove the old Use,
   // replace the pointer, then register the new Use.
@@ -51,15 +60,6 @@ void Operation::setOperand(std::size_t index, Value* replacement) {
     throw std::invalid_argument("Replacement cannot be null");
   }
   Value* original_operand = this->operands_[index];
-
-  bool exist = false;
-  for (auto use : original_operand->uses_) {
-    if (use.owner == this && use.operandIndex == index) {
-      exist = true;
-    }
-  }
-  // assert exist to prevent removeUse from raising
-  assert(exist);
   original_operand->removeUse(this, index);
 
   this->operands_[index] = replacement;

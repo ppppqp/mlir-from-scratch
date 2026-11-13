@@ -1,14 +1,15 @@
 #pragma once
 
-#include "mini/ir/Type.h"
-
 #include <cstddef>
 #include <span>
 #include <vector>
 
+#include "mini/ir/Type.h"
+
 namespace mini::ir {
 
 class Operation;
+class Block;
 
 struct Use {
   Operation* owner;
@@ -17,12 +18,13 @@ struct Use {
   bool operator==(const Use&) const = default;
 };
 
-// A Value is owned by its defining Operation, or temporarily by the caller
-// for a block argument. The Block class will take over that ownership in 2.2.
+// Operation results are owned by their defining Operation. Block arguments
+// are owned by their Block. Standalone Values remain useful in small tests.
 class Value {
  public:
   Value(Type type, Operation* definingOp = nullptr,
         std::size_t resultIndex = 0);
+  Value(Type type, Block* definingBlock, std::size_t argumentIndex);
 
   Value(const Value&) = delete;
   Value& operator=(const Value&) = delete;
@@ -32,6 +34,9 @@ class Value {
   const Type& type() const { return type_; }
   Operation* definingOp() const { return definingOp_; }
   std::size_t resultIndex() const { return resultIndex_; }
+  bool isBlockArgument() const { return definingBlock_ != nullptr; }
+  Block* definingBlock() const { return definingBlock_; }
+  std::size_t argumentIndex() const { return argumentIndex_; }
   std::span<const Use> uses() const { return uses_; }
   std::size_t useCount() const { return uses_.size(); }
 
@@ -45,6 +50,8 @@ class Value {
   Type type_;
   Operation* definingOp_;
   std::size_t resultIndex_;
+  Block* definingBlock_;
+  std::size_t argumentIndex_;
   std::vector<Use> uses_;
 };
 

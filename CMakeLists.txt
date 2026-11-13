@@ -7,6 +7,10 @@ add_library(mini_ir STATIC
   lib/ir/Type.cpp
   lib/ir/Value.cpp
   lib/ir/Operation.cpp
+  lib/ir/Block.cpp
+  lib/ir/Region.cpp
+  lib/ir/FuncOp.cpp
+  lib/ir/ModuleOp.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -24,4 +28,8 @@ if(BUILD_TESTING)
   add_executable(ir-use-def-test tests/ir_use_def.cpp)
   target_link_libraries(ir-use-def-test PRIVATE mini_ir)
   add_test(NAME ir-use-def COMMAND ir-use-def-test)
+
+  add_executable(ir-containers-test tests/ir_containers.cpp)
+  target_link_libraries(ir-containers-test PRIVATE mini_ir)
+  add_test(NAME ir-containers COMMAND ir-containers-test)
 endif()
