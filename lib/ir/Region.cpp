@@ -7,11 +7,16 @@
 namespace mini::ir {
 
 Region::~Region() = default;
+Region::Region() = default;
 
 Block& Region::addBlock() {
   // TODO(lesson 2.2): create and own one Block, then return it.
   // Reject adding a second Block in the initial single-block subset.
-  throw std::logic_error("TODO: Region::addBlock");
+  if (blocks_.size() > 0) {
+    throw std::overflow_error("only support single-block");
+  }
+  blocks_.push_back(std::make_unique<Block>());
+  return *blocks_.back();
 }
 
 }  // namespace mini::ir

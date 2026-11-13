@@ -11,7 +11,7 @@ class Block;
 // A Region owns Blocks. This course initially uses one Block per Region.
 class Region {
  public:
-  Region() = default;
+  Region();
   ~Region();
 
   Region(const Region&) = delete;

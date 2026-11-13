@@ -49,6 +49,8 @@ Operation::~Operation() {
 
 Region& Operation::addRegion() {
   // TODO(lesson 2.2): create and own a Region, then return it.
+  regions_.push_back(std::move(std::make_unique<Region>()));
+  return *regions_.back();
 }
 
 void Operation::setOperand(std::size_t index, Value* replacement) {
