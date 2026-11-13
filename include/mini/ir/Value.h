@@ -40,7 +40,7 @@ class Value {
 
   // TODO(lesson 2.1): maintain one Use for each operand position.
   void addUse(Operation* owner, std::size_t operandIndex);
-  void removeUse(Operation* owner, std::size_t operandIndex);
+  void removeUse(Operation* owner, std::size_t operandIndex) noexcept;
 
   Type type_;
   Operation* definingOp_;

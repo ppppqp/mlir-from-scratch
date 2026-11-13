@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <memory>
+#include <stdexcept>
 
 int main() {
   using mini::ir::Operation;
@@ -37,4 +38,14 @@ int main() {
   add.reset();
   assert(a.useCount() == 0);
   assert(b.useCount() == 0);
+
+  // A failed constructor must not leave a use pointing to a nonexistent op.
+  bool rejectedNullOperand = false;
+  try {
+    Operation invalid("invalid", {&a, nullptr}, {});
+  } catch (const std::invalid_argument&) {
+    rejectedNullOperand = true;
+  }
+  assert(rejectedNullOperand);
+  assert(a.useCount() == 0);
 }
