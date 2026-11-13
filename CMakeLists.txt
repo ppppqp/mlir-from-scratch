@@ -4,6 +4,9 @@ project(mini_compiler VERSION 0.1.0 LANGUAGES CXX)
 
 add_library(mini_ir STATIC
   lib/Version.cpp
+  lib/ir/Type.cpp
+  lib/ir/Value.cpp
+  lib/ir/Operation.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -15,3 +18,10 @@ add_executable(mini-opt
   tools/mini-opt/main.cpp
 )
 target_link_libraries(mini-opt PRIVATE mini_ir)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(ir-use-def-test tests/ir_use_def.cpp)
+  target_link_libraries(ir-use-def-test PRIVATE mini_ir)
+  add_test(NAME ir-use-def COMMAND ir-use-def-test)
+endif()
