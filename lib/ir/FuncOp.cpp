@@ -11,6 +11,9 @@ namespace mini::ir {
 
 FuncOp::FuncOp(Operation& operation) : operation_(&operation) {
   // TODO(lesson 2.2): reject an Operation whose name is not "func.func".
+  if (operation.name() != "func.func") {
+    throw std::invalid_argument("func op name is incorrect");
+  }
 }
 
 Block& FuncOp::entryBlock() const {

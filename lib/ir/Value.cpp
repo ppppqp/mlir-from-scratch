@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <exception>
+#include <stdexcept>
 #include <utility>
-
 namespace mini::ir {
 
 Value::Value(Type type, Operation* definingOp, std::size_t resultIndex)
@@ -20,6 +20,9 @@ Value::Value(Type type, Block* definingBlock, std::size_t argumentIndex)
       definingBlock_(definingBlock),
       argumentIndex_(argumentIndex) {
   // TODO(lesson 2.2): reject a null definingBlock.
+  if (definingBlock == nullptr) {
+    throw std::invalid_argument("defining block can not be null");
+  }
 }
 
 void Value::addUse(Operation* owner, std::size_t operandIndex) {

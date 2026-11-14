@@ -1,5 +1,6 @@
 #include <cassert>
 #include <memory>
+#include <stdexcept>
 #include <string_view>
 #include <vector>
 
@@ -69,6 +70,22 @@ int main() {
     observed.push_back(operation->name());
   }
   assert(observed == expected);
+
+  bool rejectedWrongFunc = false;
+  try {
+    FuncOp invalid(*root);
+  } catch (const std::invalid_argument&) {
+    rejectedWrongFunc = true;
+  }
+  assert(rejectedWrongFunc);
+
+  bool rejectedNullBlock = false;
+  try {
+    Value invalid(tensor, static_cast<Block*>(nullptr), 0);
+  } catch (const std::invalid_argument&) {
+    rejectedNullBlock = true;
+  }
+  assert(rejectedNullBlock);
 
   // Destroying root recursively removes users before definitions.
 }
