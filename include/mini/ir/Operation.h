@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <span>
 #include <string>
@@ -8,6 +9,7 @@
 #include <vector>
 
 #include "mini/ir/Value.h"
+#include "mini/ir/Attribute.h"
 
 namespace mini::ir {
 
@@ -33,6 +35,10 @@ class Operation {
   const Value& result(std::size_t index) const { return *results_.at(index); }
   std::span<const std::unique_ptr<Region>> regions() const { return regions_; }
 
+  // TODO(lesson 3.2): store typed metadata such as sym_name and function_type.
+  void setAttribute(std::string key, Attribute value);
+  const Attribute* findAttribute(std::string_view key) const;
+
   // TODO(lesson 2.2): an Operation can own nested Regions.
   Region& addRegion();
 
@@ -44,6 +50,7 @@ class Operation {
   std::vector<Value*> operands_;
   std::vector<std::unique_ptr<Value>> results_;
   std::vector<std::unique_ptr<Region>> regions_;
+  std::map<std::string, Attribute, std::less<>> attributes_;
 };
 
 }  // namespace mini::ir

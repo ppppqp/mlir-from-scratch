@@ -14,6 +14,8 @@ add_library(mini_ir STATIC
   lib/ir/FuncOp.cpp
   lib/ir/ModuleOp.cpp
   lib/ir/Walk.cpp
+  lib/ir/Parser.cpp
+  lib/ir/Printer.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -39,4 +41,8 @@ if(BUILD_TESTING)
   add_executable(ir-rewrite-test tests/ir_rewrite.cpp)
   target_link_libraries(ir-rewrite-test PRIVATE mini_ir)
   add_test(NAME ir-rewrite COMMAND ir-rewrite-test)
+
+  add_executable(ir-text-test tests/ir_text.cpp)
+  target_link_libraries(ir-text-test PRIVATE mini_ir)
+  add_test(NAME ir-text COMMAND ir-text-test)
 endif()

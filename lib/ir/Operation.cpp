@@ -53,6 +53,24 @@ Region& Operation::addRegion() {
   return *regions_.back();
 }
 
+void Operation::setAttribute(std::string key, Attribute value) {
+  // TODO(lesson 3.2): insert or replace the attribute named key.
+  const auto it = attributes_.find(key);
+  if (it != attributes_.end()) {
+    it->second = value;
+  } else {
+    attributes_[key] = value;
+  }
+}
+
+const Attribute* Operation::findAttribute(std::string_view key) const {
+  const auto it = attributes_.find(key);
+  if (it == attributes_.end()) {
+    return nullptr;
+  }
+  return &it->second;
+}
+
 void Operation::setOperand(std::size_t index, Value* replacement) {
   // TODO(lesson 2.1): check the index and replacement, remove the old Use,
   // replace the pointer, then register the new Use.
