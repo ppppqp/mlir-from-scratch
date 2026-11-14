@@ -40,6 +40,9 @@ class Value {
   std::span<const Use> uses() const { return uses_; }
   std::size_t useCount() const { return uses_.size(); }
 
+  // TODO(lesson 2.3): replace every operand that uses this Value.
+  void replaceAllUsesWith(Value& replacement);
+
  private:
   friend class Operation;
 

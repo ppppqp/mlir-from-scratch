@@ -61,11 +61,10 @@ void Operation::setOperand(std::size_t index, Value* replacement) {
   if (replacement == nullptr) {
     throw std::invalid_argument("Replacement cannot be null");
   }
+  replacement->addUse(this, index);
   Value* original_operand = this->operands_[index];
   original_operand->removeUse(this, index);
-
   this->operands_[index] = replacement;
-  replacement->addUse(this, index);
 }
 
 }  // namespace mini::ir

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(mini_compiler VERSION 0.1.0 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 add_library(mini_ir STATIC
   lib/Version.cpp
   lib/ir/Type.cpp
@@ -11,6 +13,7 @@ add_library(mini_ir STATIC
   lib/ir/Region.cpp
   lib/ir/FuncOp.cpp
   lib/ir/ModuleOp.cpp
+  lib/ir/Walk.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -32,4 +35,8 @@ if(BUILD_TESTING)
   add_executable(ir-containers-test tests/ir_containers.cpp)
   target_link_libraries(ir-containers-test PRIVATE mini_ir)
   add_test(NAME ir-containers COMMAND ir-containers-test)
+
+  add_executable(ir-rewrite-test tests/ir_rewrite.cpp)
+  target_link_libraries(ir-rewrite-test PRIVATE mini_ir)
+  add_test(NAME ir-rewrite COMMAND ir-rewrite-test)
 endif()

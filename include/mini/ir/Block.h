@@ -22,6 +22,9 @@ class Block {
 
   Value& addArgument(Type type);
   Operation& append(std::unique_ptr<Operation> operation);
+  Operation& insertBefore(Operation& anchor,
+                          std::unique_ptr<Operation> operation);
+  void erase(Operation& operation);
 
   std::span<const std::unique_ptr<Value>> arguments() const {
     return arguments_;

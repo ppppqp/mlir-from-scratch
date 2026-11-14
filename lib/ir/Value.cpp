@@ -4,6 +4,9 @@
 #include <exception>
 #include <stdexcept>
 #include <utility>
+#include <vector>
+
+#include "mini/ir/Operation.h"
 namespace mini::ir {
 
 Value::Value(Type type, Operation* definingOp, std::size_t resultIndex)
@@ -39,6 +42,23 @@ void Value::removeUse(Operation* owner, std::size_t operandIndex) noexcept {
     std::terminate();
   }
   uses_.erase(it);
+}
+
+void Value::replaceAllUsesWith(Value& replacement) {
+  // TODO(lesson 2.3): require matching types; replacing with *this is a no-op.
+  // Copy uses_ before calling Operation::setOperand, because that call mutates
+  // uses_. Afterward this Value should have no uses.
+
+  if (this == &replacement) {
+    return;
+  }
+  if (type_ != replacement.type()) {
+    throw std::invalid_argument("type does not match");
+  }
+  std::vector<Use> uses_copy(uses_);
+  for (auto const& use : uses_copy) {
+    use.owner->setOperand(use.operandIndex, &replacement);
+  }
 }
 
 }  // namespace mini::ir
