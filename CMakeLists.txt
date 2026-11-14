@@ -20,6 +20,7 @@ add_library(mini_ir STATIC
   lib/ops/MiniAddOp.cpp
   lib/ops/MiniReluOp.cpp
   lib/ops/MiniMatmulOp.cpp
+  lib/pass/PassManager.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -61,4 +62,8 @@ if(BUILD_TESTING)
   add_executable(ir-module-verify-test tests/ir_module_verify.cpp)
   target_link_libraries(ir-module-verify-test PRIVATE mini_ir)
   add_test(NAME ir-module-verify COMMAND ir-module-verify-test)
+
+  add_executable(pass-manager-test tests/pass_manager.cpp)
+  target_link_libraries(pass-manager-test PRIVATE mini_ir)
+  add_test(NAME pass-manager COMMAND pass-manager-test)
 endif()
