@@ -5,23 +5,27 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 namespace mini::pass {
 
-// First stage: run an ordered sequence of passes on one Operation.
-// Nested managers are added in the next exercise.
+// Run passes and nested managers in the order they were added.
 class PassManager {
  public:
   explicit PassManager(std::string targetOpName);
 
   std::string_view targetOpName() const { return targetOpName_; }
   void addPass(std::unique_ptr<Pass> pass);
+  PassManager& nest(std::string targetOpName);
   bool run(ir::Operation& operation, std::string& error);
 
  private:
+  using Step =
+      std::variant<std::unique_ptr<Pass>, std::unique_ptr<PassManager>>;
+
   std::string targetOpName_;
-  std::vector<std::unique_ptr<Pass>> passes_;
+  std::vector<Step> steps_;
 };
 
 }  // namespace mini::pass
