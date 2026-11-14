@@ -8,8 +8,8 @@
 #include <string_view>
 #include <vector>
 
-#include "mini/ir/Value.h"
 #include "mini/ir/Attribute.h"
+#include "mini/ir/Value.h"
 
 namespace mini::ir {
 

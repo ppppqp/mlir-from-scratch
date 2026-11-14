@@ -104,4 +104,21 @@ module {
     rejected = true;
   }
   assert(rejected);
+
+  constexpr std::string_view badAdd = R"mlir(
+module {
+  func.func @bad(%a: tensor<4xf32>, %b: tensor<8xf32>) -> tensor<4xf32> {
+    %sum = "mini.add"(%a, %b) : (tensor<4xf32>, tensor<8xf32>) -> tensor<4xf32>
+    func.return %sum : tensor<4xf32>
+  }
+}
+)mlir";
+  rejected = false;
+  try {
+    (void)mini::ir::parseModule(badAdd);
+  } catch (const std::runtime_error& error) {
+    rejected = std::string_view(error.what()).find("mini.add operand types") !=
+               std::string_view::npos;
+  }
+  assert(rejected);
 }

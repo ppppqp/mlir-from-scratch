@@ -4,6 +4,7 @@
 #include "mini/ir/Block.h"
 #include "mini/ir/Operation.h"
 #include "mini/ir/Region.h"
+#include "mini/ir/Verify.h"
 
 #include <charconv>
 #include <cctype>
@@ -190,48 +191,6 @@ class Reader {
     return Type::tensor({first});
   }
 
-  static bool isTensorRank(const Type& type, std::size_t rank) {
-    return type.kind() == Type::Kind::Tensor && type.shape().size() == rank;
-  }
-
-  void checkComputation(std::string_view name,
-                        const std::vector<Value*>& operands,
-                        const Type& result) {
-    if (name == "mini.add") {
-      if (operands.size() != 2 || !isTensorRank(operands[0]->type(), 1) ||
-          operands[0]->type() != operands[1]->type() ||
-          result != operands[0]->type() ||
-          operands[0]->type().shape()[0] % 4 != 0) {
-        fail("invalid mini.add types or shape");
-      }
-      return;
-    }
-    if (name == "mini.relu") {
-      if (operands.size() != 1 || !isTensorRank(operands[0]->type(), 1) ||
-          result != operands[0]->type() ||
-          operands[0]->type().shape()[0] % 4 != 0) {
-        fail("invalid mini.relu types or shape");
-      }
-      return;
-    }
-    if (name == "mini.matmul") {
-      if (operands.size() != 2 || !isTensorRank(operands[0]->type(), 2) ||
-          !isTensorRank(operands[1]->type(), 2) ||
-          !isTensorRank(result, 2)) {
-        fail("invalid mini.matmul types");
-      }
-      const auto a = operands[0]->type().shape();
-      const auto b = operands[1]->type().shape();
-      const auto c = result.shape();
-      if (a[1] != b[0] || c[0] != a[0] || c[1] != b[1] || a[0] % 16 != 0 ||
-          a[1] % 16 != 0 || b[1] % 16 != 0) {
-        fail("invalid mini.matmul dimensions");
-      }
-      return;
-    }
-    fail("unsupported computation operation");
-  }
-
   void parseComputation(Block& body,
                         std::unordered_map<std::string, Value*>& values) {
     const std::string resultName = parseName('%');
@@ -272,9 +231,12 @@ class Reader {
         fail("declared operand type does not match SSA value type");
       }
     }
-    checkComputation(operationName, operands, resultType);
     auto operation = std::make_unique<Operation>(
         operationName, std::move(operands), std::vector<Type>{resultType});
+    std::string error;
+    if (!verifyOperation(*operation, error)) {
+      fail(error);
+    }
     Value* result = &operation->result(0);
     body.append(std::move(operation));
     values.emplace(resultName, result);

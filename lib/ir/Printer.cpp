@@ -4,6 +4,7 @@
 #include "mini/ir/Block.h"
 #include "mini/ir/Operation.h"
 #include "mini/ir/Region.h"
+#include "mini/ir/Verify.h"
 
 #include <sstream>
 #include <stdexcept>
@@ -105,13 +106,9 @@ void printFunction(std::ostringstream& output, const Operation& function) {
       sawReturn = true;
       continue;
     }
-    if (operation->name() != "mini.add" &&
-        operation->name() != "mini.relu" &&
-        operation->name() != "mini.matmul") {
-      throw std::invalid_argument("unsupported computation operation");
-    }
-    if (operation->resultCount() != 1 || !operation->regions().empty()) {
-      throw std::invalid_argument("computation must have one result and no region");
+    std::string error;
+    if (!verifyOperation(*operation, error)) {
+      throw std::invalid_argument(error);
     }
     const std::string resultName = "%" + std::to_string(resultIndex++);
     output << "    " << resultName << " = \"" << operation->name() << "\"(";

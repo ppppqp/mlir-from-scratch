@@ -16,6 +16,10 @@ add_library(mini_ir STATIC
   lib/ir/Walk.cpp
   lib/ir/Parser.cpp
   lib/ir/Printer.cpp
+  lib/ir/Verify.cpp
+  lib/ops/MiniAddOp.cpp
+  lib/ops/MiniReluOp.cpp
+  lib/ops/MiniMatmulOp.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -45,4 +49,8 @@ if(BUILD_TESTING)
   add_executable(ir-text-test tests/ir_text.cpp)
   target_link_libraries(ir-text-test PRIVATE mini_ir)
   add_test(NAME ir-text COMMAND ir-text-test)
+
+  add_executable(ir-verify-test tests/ir_verify.cpp)
+  target_link_libraries(ir-verify-test PRIVATE mini_ir)
+  add_test(NAME ir-verify COMMAND ir-verify-test)
 endif()
