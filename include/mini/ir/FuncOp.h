@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace mini::ir {
 
 class Block;
@@ -13,6 +15,10 @@ class FuncOp {
 
   Operation& operation() const { return *operation_; }
   Block& entryBlock() const;
+
+  // Verify the function body against its function_type attribute.
+  // Return true on success and clear error; otherwise explain the first error.
+  bool verifyRegions(std::string& error) const;
 
  private:
   Operation* operation_;

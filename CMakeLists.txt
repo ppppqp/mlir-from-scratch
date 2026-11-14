@@ -53,4 +53,8 @@ if(BUILD_TESTING)
   add_executable(ir-verify-test tests/ir_verify.cpp)
   target_link_libraries(ir-verify-test PRIVATE mini_ir)
   add_test(NAME ir-verify COMMAND ir-verify-test)
+
+  add_executable(ir-func-verify-test tests/ir_func_verify.cpp)
+  target_link_libraries(ir-func-verify-test PRIVATE mini_ir)
+  add_test(NAME ir-func-verify COMMAND ir-func-verify-test)
 endif()
