@@ -25,6 +25,7 @@ add_library(mini_ir STATIC
   lib/pass/PassManager.cpp
   lib/analysis/UseCountAnalysis.cpp
   lib/analysis/AnalysisManager.cpp
+  lib/interpreter/Interpreter.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -86,4 +87,8 @@ if(BUILD_TESTING)
   add_executable(dps-ops-test tests/dps_ops.cpp)
   target_link_libraries(dps-ops-test PRIVATE mini_ir)
   add_test(NAME dps-ops COMMAND dps-ops-test)
+
+  add_executable(interpreter-test tests/interpreter.cpp)
+  target_link_libraries(interpreter-test PRIVATE mini_ir)
+  add_test(NAME interpreter COMMAND interpreter-test)
 endif()
