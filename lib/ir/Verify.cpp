@@ -11,6 +11,8 @@
 #include "mini/ir/Operation.h"
 #include "mini/ir/Region.h"
 #include "mini/ops/MiniAddOp.h"
+#include "mini/ops/MiniDpsAddOp.h"
+#include "mini/ops/MiniDpsReluOp.h"
 #include "mini/ops/MiniMatmulOp.h"
 #include "mini/ops/MiniReluOp.h"
 
@@ -31,6 +33,8 @@ constexpr std::array verifiers{
     VerifierEntry{ops::MiniAddOp::name, &verifyAs<ops::MiniAddOp>},
     VerifierEntry{ops::MiniReluOp::name, &verifyAs<ops::MiniReluOp>},
     VerifierEntry{ops::MiniMatmulOp::name, &verifyAs<ops::MiniMatmulOp>},
+    VerifierEntry{ops::MiniDpsAddOp::name, &verifyAs<ops::MiniDpsAddOp>},
+    VerifierEntry{ops::MiniDpsReluOp::name, &verifyAs<ops::MiniDpsReluOp>},
 };
 
 }  // namespace

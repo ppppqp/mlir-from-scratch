@@ -20,6 +20,8 @@ add_library(mini_ir STATIC
   lib/ops/MiniAddOp.cpp
   lib/ops/MiniReluOp.cpp
   lib/ops/MiniMatmulOp.cpp
+  lib/ops/MiniDpsAddOp.cpp
+  lib/ops/MiniDpsReluOp.cpp
   lib/pass/PassManager.cpp
   lib/analysis/UseCountAnalysis.cpp
   lib/analysis/AnalysisManager.cpp
@@ -80,4 +82,8 @@ if(BUILD_TESTING)
   add_executable(structured-ops-test tests/structured_ops.cpp)
   target_link_libraries(structured-ops-test PRIVATE mini_ir)
   add_test(NAME structured-ops COMMAND structured-ops-test)
+
+  add_executable(dps-ops-test tests/dps_ops.cpp)
+  target_link_libraries(dps-ops-test PRIVATE mini_ir)
+  add_test(NAME dps-ops COMMAND dps-ops-test)
 endif()
