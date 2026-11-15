@@ -39,9 +39,14 @@ bool PassManager::run(ir::Operation& operation, std::string& error) {
   for (auto& step : steps_) {
     if (auto* pass = std::get_if<std::unique_ptr<Pass>>(&step)) {
       if (!(*pass)->run(operation, error)) {
+        // A failing pass may already have changed the IR.
+        analyses_.invalidate(operation);
         error = "pass " + std::string((*pass)->name()) +
                 " failed: " + (error.empty() ? "no diagnostic" : error);
         return false;
+      }
+      if (!(*pass)->preservesUseCountAnalysis()) {
+        analyses_.invalidate(operation);
       }
       error.clear();
       continue;

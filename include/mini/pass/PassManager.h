@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mini/pass/Pass.h"
+#include "mini/analysis/AnalysisManager.h"
 
 #include <memory>
 #include <string>
@@ -19,6 +20,7 @@ class PassManager {
   void addPass(std::unique_ptr<Pass> pass);
   PassManager& nest(std::string targetOpName);
   bool run(ir::Operation& operation, std::string& error);
+  analysis::AnalysisManager& analyses() { return analyses_; }
 
  private:
   using Step =
@@ -26,6 +28,7 @@ class PassManager {
 
   std::string targetOpName_;
   std::vector<Step> steps_;
+  analysis::AnalysisManager analyses_;
 };
 
 }  // namespace mini::pass

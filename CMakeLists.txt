@@ -22,6 +22,7 @@ add_library(mini_ir STATIC
   lib/ops/MiniMatmulOp.cpp
   lib/pass/PassManager.cpp
   lib/analysis/UseCountAnalysis.cpp
+  lib/analysis/AnalysisManager.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -71,4 +72,8 @@ if(BUILD_TESTING)
   add_executable(use-count-analysis-test tests/use_count_analysis.cpp)
   target_link_libraries(use-count-analysis-test PRIVATE mini_ir)
   add_test(NAME use-count-analysis COMMAND use-count-analysis-test)
+
+  add_executable(analysis-cache-test tests/analysis_cache.cpp)
+  target_link_libraries(analysis-cache-test PRIVATE mini_ir)
+  add_test(NAME analysis-cache COMMAND analysis-cache-test)
 endif()

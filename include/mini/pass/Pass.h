@@ -14,6 +14,8 @@ class Pass {
   virtual ~Pass() = default;
 
   virtual std::string_view name() const = 0;
+  // Override only when this pass cannot change operand use counts.
+  virtual bool preservesUseCountAnalysis() const { return false; }
   // Return false and set error when the pass cannot complete.
   virtual bool run(ir::Operation& operation, std::string& error) = 0;
 };
