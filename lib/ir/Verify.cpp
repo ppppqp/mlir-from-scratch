@@ -13,8 +13,12 @@
 #include "mini/ops/MiniAddOp.h"
 #include "mini/ops/MiniDpsAddOp.h"
 #include "mini/ops/MiniDpsReluOp.h"
+#include "mini/ops/MiniGenericOp.h"
 #include "mini/ops/MiniMatmulOp.h"
 #include "mini/ops/MiniReluOp.h"
+#include "mini/ops/MiniScalarAddOp.h"
+#include "mini/ops/MiniScalarReluOp.h"
+#include "mini/ops/MiniYieldOp.h"
 
 namespace mini::ir {
 namespace {
@@ -35,6 +39,10 @@ constexpr std::array verifiers{
     VerifierEntry{ops::MiniMatmulOp::name, &verifyAs<ops::MiniMatmulOp>},
     VerifierEntry{ops::MiniDpsAddOp::name, &verifyAs<ops::MiniDpsAddOp>},
     VerifierEntry{ops::MiniDpsReluOp::name, &verifyAs<ops::MiniDpsReluOp>},
+    VerifierEntry{ops::MiniGenericOp::name, &verifyAs<ops::MiniGenericOp>},
+    VerifierEntry{ops::MiniScalarAddOp::name, &verifyAs<ops::MiniScalarAddOp>},
+    VerifierEntry{ops::MiniScalarReluOp::name, &verifyAs<ops::MiniScalarReluOp>},
+    VerifierEntry{ops::MiniYieldOp::name, &verifyAs<ops::MiniYieldOp>},
 };
 
 }  // namespace

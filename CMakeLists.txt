@@ -22,6 +22,10 @@ add_library(mini_ir STATIC
   lib/ops/MiniMatmulOp.cpp
   lib/ops/MiniDpsAddOp.cpp
   lib/ops/MiniDpsReluOp.cpp
+  lib/ops/MiniGenericOp.cpp
+  lib/ops/MiniScalarAddOp.cpp
+  lib/ops/MiniScalarReluOp.cpp
+  lib/ops/MiniYieldOp.cpp
   lib/ops/SideEffectInterface.cpp
   lib/pass/PassManager.cpp
   lib/pass/CanonicalizePass.cpp
@@ -102,4 +106,8 @@ if(BUILD_TESTING)
   add_executable(cse-test tests/cse.cpp)
   target_link_libraries(cse-test PRIVATE mini_ir)
   add_test(NAME cse COMMAND cse-test)
+
+  add_executable(generic-ops-test tests/generic_ops.cpp)
+  target_link_libraries(generic-ops-test PRIVATE mini_ir)
+  add_test(NAME generic-ops COMMAND generic-ops-test)
 endif()
