@@ -25,6 +25,7 @@ add_library(mini_ir STATIC
   lib/ops/SideEffectInterface.cpp
   lib/pass/PassManager.cpp
   lib/pass/CanonicalizePass.cpp
+  lib/pass/CsePass.cpp
   lib/analysis/UseCountAnalysis.cpp
   lib/analysis/AnalysisManager.cpp
   lib/interpreter/Interpreter.cpp
@@ -97,4 +98,8 @@ if(BUILD_TESTING)
   add_executable(canonicalize-test tests/canonicalize.cpp)
   target_link_libraries(canonicalize-test PRIVATE mini_ir)
   add_test(NAME canonicalize COMMAND canonicalize-test)
+
+  add_executable(cse-test tests/cse.cpp)
+  target_link_libraries(cse-test PRIVATE mini_ir)
+  add_test(NAME cse COMMAND cse-test)
 endif()
