@@ -21,6 +21,7 @@ add_library(mini_ir STATIC
   lib/ops/MiniReluOp.cpp
   lib/ops/MiniMatmulOp.cpp
   lib/pass/PassManager.cpp
+  lib/analysis/UseCountAnalysis.cpp
 )
 target_compile_features(mini_ir PUBLIC cxx_std_20)
 target_include_directories(mini_ir PUBLIC
@@ -66,4 +67,8 @@ if(BUILD_TESTING)
   add_executable(pass-manager-test tests/pass_manager.cpp)
   target_link_libraries(pass-manager-test PRIVATE mini_ir)
   add_test(NAME pass-manager COMMAND pass-manager-test)
+
+  add_executable(use-count-analysis-test tests/use_count_analysis.cpp)
+  target_link_libraries(use-count-analysis-test PRIVATE mini_ir)
+  add_test(NAME use-count-analysis COMMAND use-count-analysis-test)
 endif()
