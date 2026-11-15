@@ -48,4 +48,65 @@ int main() {
     rejected = true;
   }
   assert(rejected);
+
+  const Type matrix16 = Type::tensor({16, 16});
+  Operation matmulFunction("func.func", {}, {});
+  auto& matmulBlock = matmulFunction.addRegion().addBlock();
+  Value& lhs = matmulBlock.addArgument(matrix16);
+  Value& rhs = matmulBlock.addArgument(matrix16);
+  auto matmul = std::make_unique<Operation>(
+      "mini.matmul", std::vector<Value*>{&lhs, &rhs},
+      std::vector<Type>{matrix16});
+  Value& product = matmul->result(0);
+  matmulBlock.append(std::move(matmul));
+  matmulBlock.append(std::make_unique<Operation>(
+      "func.return", std::vector<Value*>{&product}, std::vector<Type>{}));
+
+  std::vector<TensorData> matrices{{matrix16, std::vector<float>(256, 0.0f)},
+                                   {matrix16, std::vector<float>(256, 0.0f)}};
+  matrices[0].elements[1 * 16 + 3] = 2.0f;
+  matrices[1].elements[3 * 16 + 2] = 4.0f;
+  matrices[0].elements[1 * 16 + 5] = -1.0f;
+  matrices[1].elements[5 * 16 + 2] = 3.0f;
+  const TensorData productData =
+      mini::interpreter::runFunction(matmulFunction, matrices);
+  assert(productData.type == matrix16);
+  for (std::size_t i = 0; i < productData.elements.size(); ++i) {
+    assert(productData.elements[i] == (i == 1 * 16 + 2 ? 5.0f : 0.0f));
+  }
+  assert(matrices[0].elements[1 * 16 + 3] == 2.0f);
+
+  Operation dpsFunction("func.func", {}, {});
+  auto& dpsBlock = dpsFunction.addRegion().addBlock();
+  Value& dpsA = dpsBlock.addArgument(tensor4);
+  Value& dpsB = dpsBlock.addArgument(tensor4);
+  Value& init = dpsBlock.addArgument(tensor4);
+  auto dpsAdd = std::make_unique<Operation>(
+      "mini.dps_add", std::vector<Value*>{&dpsA, &dpsB, &init},
+      std::vector<Type>{tensor4});
+  Value& dpsSum = dpsAdd->result(0);
+  dpsBlock.append(std::move(dpsAdd));
+  auto dpsRelu = std::make_unique<Operation>(
+      "mini.dps_relu", std::vector<Value*>{&dpsSum, &init},
+      std::vector<Type>{tensor4});
+  Value& dpsOut = dpsRelu->result(0);
+  dpsBlock.append(std::move(dpsRelu));
+  Operation& dpsReturn = dpsBlock.append(std::make_unique<Operation>(
+      "func.return", std::vector<Value*>{&dpsOut}, std::vector<Type>{}));
+
+  const std::vector<TensorData> dpsInputs{
+      {tensor4, {1.0f, 2.0f, 3.0f, 4.0f}},
+      {tensor4, {5.0f, 6.0f, 7.0f, 8.0f}},
+      {tensor4, {100.0f, 100.0f, 100.0f, 100.0f}}};
+  const TensorData dpsResult =
+      mini::interpreter::runFunction(dpsFunction, dpsInputs);
+  assert((dpsResult.elements == std::vector<float>{6.0f, 8.0f, 10.0f, 12.0f}));
+  assert((dpsInputs[2].elements ==
+          std::vector<float>{100.0f, 100.0f, 100.0f, 100.0f}));
+
+  dpsReturn.setOperand(0, &init);
+  const TensorData oldInit =
+      mini::interpreter::runFunction(dpsFunction, dpsInputs);
+  assert((oldInit.elements ==
+          std::vector<float>{100.0f, 100.0f, 100.0f, 100.0f}));
 }

@@ -18,7 +18,7 @@ struct TensorData {
 };
 
 // Execute one func.func with a single entry block and one tensor result.
-// This stage supports mini.add and mini.relu; later stages add matmul and DPS.
+// Supports mini.add, mini.relu, mini.matmul, mini.dps_add, and mini.dps_relu.
 TensorData runFunction(const ir::Operation& function,
                        std::span<const TensorData> inputs);
 
