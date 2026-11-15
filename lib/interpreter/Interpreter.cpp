@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "mini/ir/Block.h"
 #include "mini/ir/Operation.h"
@@ -12,6 +13,7 @@
 #include "mini/ir/Verify.h"
 #include "mini/ops/MiniDpsAddOp.h"
 #include "mini/ops/MiniDpsReluOp.h"
+#include "mini/ops/MiniGenericOp.h"
 
 namespace mini::interpreter {
 namespace {
@@ -29,6 +31,44 @@ std::size_t elementCount(const ir::Type& type) {
     count *= static_cast<std::size_t>(dimension);
   }
   return count;
+}
+
+TensorData evaluateGeneric(const ir::Operation& generic,
+                           const TensorData& lhs, const TensorData& rhs) {
+  const ir::Block& body = *generic.regions()[0]->blocks()[0];
+  const auto arguments = body.arguments();
+  std::vector<float> result(elementCount(generic.result(0).type()));
+
+  for (std::size_t element = 0; element < result.size(); ++element) {
+    // Scalar SSA values belong to this element's region invocation.
+    std::unordered_map<const ir::Value*, float> scalars;
+    scalars.emplace(arguments[0].get(), lhs.elements[element]);
+    scalars.emplace(arguments[1].get(), rhs.elements[element]);
+    const auto lookupScalar = [&scalars](const ir::Value* value) -> float {
+      const auto it = scalars.find(value);
+      if (it == scalars.end()) {
+        throw std::invalid_argument("use of unavailable scalar SSA value");
+      }
+      return it->second;
+    };
+
+    for (const auto& child : body.operations()) {
+      if (child->name() == "mini.scalar_add") {
+        scalars.emplace(&child->result(0),
+                        lookupScalar(child->operands()[0]) +
+                            lookupScalar(child->operands()[1]));
+      } else if (child->name() == "mini.scalar_relu") {
+        scalars.emplace(&child->result(0),
+                        std::max(lookupScalar(child->operands()[0]), 0.0f));
+      } else if (child->name() == "mini.yield") {
+        result[element] = lookupScalar(child->operands()[0]);
+        break;
+      } else {
+        throw std::invalid_argument("unsupported scalar operation in mini.generic");
+      }
+    }
+  }
+  return TensorData{generic.result(0).type(), std::move(result)};
 }
 
 }  // namespace
@@ -75,13 +115,21 @@ TensorData runFunction(const ir::Operation& function,
                        operation.name() == ops::MiniDpsAddOp::name;
     const bool isRelu = operation.name() == "mini.relu" ||
                         operation.name() == ops::MiniDpsReluOp::name;
-    if (!isAdd && !isRelu && operation.name() != "mini.matmul") {
+    if (!isAdd && !isRelu && operation.name() != "mini.matmul" &&
+        operation.name() != ops::MiniGenericOp::name) {
       throw std::invalid_argument("unsupported interpreter operation: " +
                                   std::string(operation.name()));
     }
     std::string error;
     if (!ir::verifyOperation(operation, error)) {
       throw std::invalid_argument(error);
+    }
+
+    if (operation.name() == ops::MiniGenericOp::name) {
+      values.emplace(&operation.result(0),
+                     evaluateGeneric(operation, lookup(operation.operands()[0]),
+                                     lookup(operation.operands()[1])));
+      continue;
     }
 
     if (operation.name() == ops::MiniDpsAddOp::name) {

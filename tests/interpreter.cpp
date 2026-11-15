@@ -8,6 +8,10 @@
 #include "mini/ir/Block.h"
 #include "mini/ir/Operation.h"
 #include "mini/ir/Region.h"
+#include "mini/pass/FuseAddReluPass.h"
+#include "mini/pass/PassManager.h"
+
+#include <string>
 
 int main() {
   using mini::interpreter::TensorData;
@@ -38,6 +42,15 @@ int main() {
   assert(result.type == tensor4);
   assert((result.elements == std::vector<float>{0.0f, 0.0f, 2.0f, 5.0f}));
   assert((inputs[0].elements == std::vector<float>{-1.0f, 2.0f, -3.0f, 4.0f}));
+
+  mini::pass::PassManager fusion("func.func");
+  fusion.addPass(std::make_unique<mini::pass::FuseAddReluPass>());
+  std::string fusionError;
+  assert(fusion.run(function, fusionError));
+  assert(block.operations().size() == 2);
+  const TensorData fused = mini::interpreter::runFunction(function, inputs);
+  assert(fused.type == result.type);
+  assert(fused.elements == result.elements);
 
   auto shortInputs = inputs;
   shortInputs[0].elements.pop_back();
