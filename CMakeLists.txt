@@ -30,6 +30,7 @@ add_library(mini_ir STATIC
   lib/pass/PassManager.cpp
   lib/pass/CanonicalizePass.cpp
   lib/pass/CsePass.cpp
+  lib/pass/FuseAddReluPass.cpp
   lib/analysis/UseCountAnalysis.cpp
   lib/analysis/AnalysisManager.cpp
   lib/interpreter/Interpreter.cpp
@@ -110,4 +111,8 @@ if(BUILD_TESTING)
   add_executable(generic-ops-test tests/generic_ops.cpp)
   target_link_libraries(generic-ops-test PRIVATE mini_ir)
   add_test(NAME generic-ops COMMAND generic-ops-test)
+
+  add_executable(fuse-add-relu-test tests/fuse_add_relu.cpp)
+  target_link_libraries(fuse-add-relu-test PRIVATE mini_ir)
+  add_test(NAME fuse-add-relu COMMAND fuse-add-relu-test)
 endif()
