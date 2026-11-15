@@ -17,6 +17,7 @@ class MiniDpsReluOp {
   static constexpr unsigned outputOperandIndex = 1;
 
   explicit MiniDpsReluOp(const ir::Operation& operation);
+  static constexpr bool hasSideEffects() { return true; }
   bool verify(std::string& error) const;
 
  private:

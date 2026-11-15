@@ -16,6 +16,7 @@ class MiniMatmulOp {
   static constexpr std::string_view name = "mini.matmul";
 
   explicit MiniMatmulOp(const ir::Operation& operation);
+  static constexpr bool hasSideEffects() { return false; }
   bool verify(std::string& error) const;
   StructuredOpInfo structuredInfo() const;
 

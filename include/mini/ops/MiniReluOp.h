@@ -16,6 +16,7 @@ class MiniReluOp {
   static constexpr std::string_view name = "mini.relu";
 
   explicit MiniReluOp(const ir::Operation& operation);
+  static constexpr bool hasSideEffects() { return false; }
   bool verify(std::string& error) const;
   StructuredOpInfo structuredInfo() const;
 

@@ -17,6 +17,7 @@ class MiniDpsAddOp {
   static constexpr unsigned outputOperandIndex = 2;
 
   explicit MiniDpsAddOp(const ir::Operation& operation);
+  static constexpr bool hasSideEffects() { return true; }
   bool verify(std::string& error) const;
 
  private:

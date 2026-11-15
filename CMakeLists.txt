@@ -22,6 +22,7 @@ add_library(mini_ir STATIC
   lib/ops/MiniMatmulOp.cpp
   lib/ops/MiniDpsAddOp.cpp
   lib/ops/MiniDpsReluOp.cpp
+  lib/ops/SideEffectInterface.cpp
   lib/pass/PassManager.cpp
   lib/pass/CanonicalizePass.cpp
   lib/analysis/UseCountAnalysis.cpp

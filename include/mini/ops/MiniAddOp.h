@@ -17,6 +17,7 @@ class MiniAddOp {
   static constexpr std::string_view name = "mini.add";
 
   explicit MiniAddOp(const ir::Operation& operation);
+  static constexpr bool hasSideEffects() { return false; }
   bool verify(std::string& error) const;
   StructuredOpInfo structuredInfo() const;
 

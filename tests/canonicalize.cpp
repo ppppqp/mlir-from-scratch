@@ -3,6 +3,7 @@
 #include "mini/ir/Region.h"
 #include "mini/pass/CanonicalizePass.h"
 #include "mini/pass/PassManager.h"
+#include "mini/ops/SideEffectInterface.h"
 
 #include <cassert>
 #include <memory>
@@ -33,7 +34,6 @@ int main() {
   assert(manager.run(function, error));
   assert(error.empty());
 
-  // TODO(lesson 6.1): these assertions fail until the rewrite is implemented.
   assert(block.operations().size() == 2);
   assert(block.operations()[0].get() == &inner);
   assert(block.operations()[1].get() == &ret);
@@ -59,4 +59,24 @@ int main() {
   assert(chainBlock.operations().size() == 2);
   assert(chainBlock.operations()[0].get() == &first);
   assert(chainReturn.operands()[0] == &first.result(0));
+
+  Operation deadChain("func.func", {}, {});
+  auto& deadBlock = deadChain.addRegion().addBlock();
+  Value& deadInput = deadBlock.addArgument(tensor);
+  Operation& deadProducer = deadBlock.append(std::make_unique<Operation>(
+      "mini.relu", std::vector<Value*>{&deadInput},
+      std::vector<Type>{tensor}));
+  Operation& deadConsumer = deadBlock.append(std::make_unique<Operation>(
+      "mini.add", std::vector<Value*>{&deadProducer.result(0), &deadInput},
+      std::vector<Type>{tensor}));
+  Operation& deadReturn = deadBlock.append(std::make_unique<Operation>(
+      "func.return", std::vector<Value*>{&deadInput}, std::vector<Type>{}));
+  assert(!mini::ops::SideEffectInterface::hasSideEffects(deadProducer));
+  assert(!mini::ops::SideEffectInterface::hasSideEffects(deadConsumer));
+  assert(mini::ops::SideEffectInterface::hasSideEffects(deadReturn));
+  assert(manager.run(deadChain, error));
+  // TODO(lesson 6.2): fails until DCE removes both dead operations.
+  assert(deadBlock.operations().size() == 1);
+  assert(deadBlock.operations()[0]->name() == "func.return");
+  assert(deadInput.useCount() == 1);
 }
