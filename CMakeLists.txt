@@ -23,6 +23,7 @@ add_library(mini_ir STATIC
   lib/ops/MiniDpsAddOp.cpp
   lib/ops/MiniDpsReluOp.cpp
   lib/pass/PassManager.cpp
+  lib/pass/CanonicalizePass.cpp
   lib/analysis/UseCountAnalysis.cpp
   lib/analysis/AnalysisManager.cpp
   lib/interpreter/Interpreter.cpp
@@ -91,4 +92,8 @@ if(BUILD_TESTING)
   add_executable(interpreter-test tests/interpreter.cpp)
   target_link_libraries(interpreter-test PRIVATE mini_ir)
   add_test(NAME interpreter COMMAND interpreter-test)
+
+  add_executable(canonicalize-test tests/canonicalize.cpp)
+  target_link_libraries(canonicalize-test PRIVATE mini_ir)
+  add_test(NAME canonicalize COMMAND canonicalize-test)
 endif()

@@ -1,12 +1,13 @@
 #include "mini/interpreter/Interpreter.h"
-#include "mini/ir/Block.h"
-#include "mini/ir/Operation.h"
-#include "mini/ir/Region.h"
 
 #include <cassert>
 #include <memory>
 #include <stdexcept>
 #include <vector>
+
+#include "mini/ir/Block.h"
+#include "mini/ir/Operation.h"
+#include "mini/ir/Region.h"
 
 int main() {
   using mini::interpreter::TensorData;
@@ -31,9 +32,8 @@ int main() {
   block.append(std::make_unique<Operation>(
       "func.return", std::vector<Value*>{&out}, std::vector<Type>{}));
 
-  const std::vector<TensorData> inputs{
-      {tensor4, {-1.0f, 2.0f, -3.0f, 4.0f}},
-      {tensor4, {0.0f, -3.0f, 5.0f, 1.0f}}};
+  const std::vector<TensorData> inputs{{tensor4, {-1.0f, 2.0f, -3.0f, 4.0f}},
+                                       {tensor4, {0.0f, -3.0f, 5.0f, 1.0f}}};
   const TensorData result = mini::interpreter::runFunction(function, inputs);
   assert(result.type == tensor4);
   assert((result.elements == std::vector<float>{0.0f, 0.0f, 2.0f, 5.0f}));
@@ -54,9 +54,9 @@ int main() {
   auto& matmulBlock = matmulFunction.addRegion().addBlock();
   Value& lhs = matmulBlock.addArgument(matrix16);
   Value& rhs = matmulBlock.addArgument(matrix16);
-  auto matmul = std::make_unique<Operation>(
-      "mini.matmul", std::vector<Value*>{&lhs, &rhs},
-      std::vector<Type>{matrix16});
+  auto matmul = std::make_unique<Operation>("mini.matmul",
+                                            std::vector<Value*>{&lhs, &rhs},
+                                            std::vector<Type>{matrix16});
   Value& product = matmul->result(0);
   matmulBlock.append(std::move(matmul));
   matmulBlock.append(std::make_unique<Operation>(
@@ -107,6 +107,6 @@ int main() {
   dpsReturn.setOperand(0, &init);
   const TensorData oldInit =
       mini::interpreter::runFunction(dpsFunction, dpsInputs);
-  assert((oldInit.elements ==
-          std::vector<float>{100.0f, 100.0f, 100.0f, 100.0f}));
+  assert(
+      (oldInit.elements == std::vector<float>{100.0f, 100.0f, 100.0f, 100.0f}));
 }
