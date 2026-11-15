@@ -1,9 +1,9 @@
 #include "mini/ops/MiniAddOp.h"
 
-#include "mini/ir/Operation.h"
-
 #include <stdexcept>
+#include <string>
 
+#include "mini/ir/Operation.h"
 namespace mini::ops {
 
 MiniAddOp::MiniAddOp(const ir::Operation& operation) : operation_(&operation) {
@@ -42,6 +42,17 @@ bool MiniAddOp::verify(std::string& error) const {
     return false;
   }
   return true;
+}
+
+StructuredOpInfo MiniAddOp::structuredInfo() const {
+  std::string error;
+  if (!verify(error)) {
+    throw std::invalid_argument(error);
+  }
+  const auto length = operation_->operands()[0]->type().shape()[0];
+  return StructuredOpInfo{{length},
+                          {IndexingMap{{0}}, IndexingMap{{0}}, IndexingMap{{0}}},
+                          {IteratorKind::Parallel}};
 }
 
 }  // namespace mini::ops

@@ -76,4 +76,8 @@ if(BUILD_TESTING)
   add_executable(analysis-cache-test tests/analysis_cache.cpp)
   target_link_libraries(analysis-cache-test PRIVATE mini_ir)
   add_test(NAME analysis-cache COMMAND analysis-cache-test)
+
+  add_executable(structured-ops-test tests/structured_ops.cpp)
+  target_link_libraries(structured-ops-test PRIVATE mini_ir)
+  add_test(NAME structured-ops COMMAND structured-ops-test)
 endif()

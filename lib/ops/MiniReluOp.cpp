@@ -1,12 +1,13 @@
 #include "mini/ops/MiniReluOp.h"
 
-#include "mini/ir/Operation.h"
-
 #include <stdexcept>
+
+#include "mini/ir/Operation.h"
 
 namespace mini::ops {
 
-MiniReluOp::MiniReluOp(const ir::Operation& operation) : operation_(&operation) {
+MiniReluOp::MiniReluOp(const ir::Operation& operation)
+    : operation_(&operation) {
   if (operation.name() != name) {
     throw std::invalid_argument("expected mini.relu operation");
   }
@@ -37,6 +38,16 @@ bool MiniReluOp::verify(std::string& error) const {
     return false;
   }
   return true;
+}
+
+StructuredOpInfo MiniReluOp::structuredInfo() const {
+  std::string error;
+  if (!verify(error)) {
+    throw std::invalid_argument(error);
+  }
+  const auto length = operation_->operands()[0]->type().shape()[0];
+  return StructuredOpInfo{
+      {length}, {IndexingMap{{0}}, IndexingMap{{0}}}, {IteratorKind::Parallel}};
 }
 
 }  // namespace mini::ops

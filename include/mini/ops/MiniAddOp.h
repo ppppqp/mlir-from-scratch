@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mini/ops/StructuredOpInfo.h"
+
 #include <string>
 #include <string_view>
 
@@ -16,6 +18,7 @@ class MiniAddOp {
 
   explicit MiniAddOp(const ir::Operation& operation);
   bool verify(std::string& error) const;
+  StructuredOpInfo structuredInfo() const;
 
  private:
   const ir::Operation* operation_;
