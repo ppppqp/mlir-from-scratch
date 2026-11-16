@@ -2,6 +2,7 @@
 
 #include "mini/ir/Type.h"
 
+#include <cstdint>
 #include <string>
 #include <variant>
 #include <vector>
@@ -17,6 +18,6 @@ struct FunctionType {
   bool operator==(const FunctionType&) const = default;
 };
 
-using Attribute = std::variant<std::string, FunctionType>;
+using Attribute = std::variant<std::string, FunctionType, std::int64_t>;
 
 }  // namespace mini::ir

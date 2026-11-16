@@ -6,12 +6,13 @@
 
 namespace mini::ir {
 
-// Lesson 2.1: only f32 scalars and statically shaped f32 tensors.
+// f32 scalars, index values, and statically shaped f32 tensors.
 class Type {
  public:
-  enum class Kind { F32, Tensor };
+  enum class Kind { F32, Index, Tensor };
 
   static Type f32();
+  static Type index();
   static Type tensor(std::vector<std::int64_t> shape);
 
   Kind kind() const { return kind_; }

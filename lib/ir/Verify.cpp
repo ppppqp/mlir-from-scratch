@@ -19,6 +19,7 @@
 #include "mini/ops/MiniScalarAddOp.h"
 #include "mini/ops/MiniScalarReluOp.h"
 #include "mini/ops/MiniYieldOp.h"
+#include "mini/ops/TilingOps.h"
 
 namespace mini::ir {
 namespace {
@@ -43,6 +44,12 @@ constexpr std::array verifiers{
     VerifierEntry{ops::MiniScalarAddOp::name, &verifyAs<ops::MiniScalarAddOp>},
     VerifierEntry{ops::MiniScalarReluOp::name, &verifyAs<ops::MiniScalarReluOp>},
     VerifierEntry{ops::MiniYieldOp::name, &verifyAs<ops::MiniYieldOp>},
+    VerifierEntry{ops::ScfForOp::name, &verifyAs<ops::ScfForOp>},
+    VerifierEntry{ops::ScfYieldOp::name, &verifyAs<ops::ScfYieldOp>},
+    VerifierEntry{ops::TensorExtractSliceOp::name,
+                  &verifyAs<ops::TensorExtractSliceOp>},
+    VerifierEntry{ops::TensorInsertSliceOp::name,
+                  &verifyAs<ops::TensorInsertSliceOp>},
 };
 
 }  // namespace

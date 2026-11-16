@@ -26,6 +26,7 @@ add_library(mini_ir STATIC
   lib/ops/MiniScalarAddOp.cpp
   lib/ops/MiniScalarReluOp.cpp
   lib/ops/MiniYieldOp.cpp
+  lib/ops/TilingOps.cpp
   lib/ops/SideEffectInterface.cpp
   lib/pass/PassManager.cpp
   lib/pass/CanonicalizePass.cpp
@@ -115,4 +116,8 @@ if(BUILD_TESTING)
   add_executable(fuse-add-relu-test tests/fuse_add_relu.cpp)
   target_link_libraries(fuse-add-relu-test PRIVATE mini_ir)
   add_test(NAME fuse-add-relu COMMAND fuse-add-relu-test)
+
+  add_executable(tiling-ops-test tests/tiling_ops.cpp)
+  target_link_libraries(tiling-ops-test PRIVATE mini_ir)
+  add_test(NAME tiling-ops COMMAND tiling-ops-test)
 endif()

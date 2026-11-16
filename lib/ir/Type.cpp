@@ -9,6 +9,8 @@ Type::Type(Kind kind, std::vector<std::int64_t> shape)
 
 Type Type::f32() { return Type(Kind::F32, {}); }
 
+Type Type::index() { return Type(Kind::Index, {}); }
+
 Type Type::tensor(std::vector<std::int64_t> shape) {
   return Type(Kind::Tensor, std::move(shape));
 }
