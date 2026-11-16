@@ -28,12 +28,14 @@ add_library(mini_ir STATIC
   lib/ops/MiniYieldOp.cpp
   lib/ops/TilingOps.cpp
   lib/ops/TensorEmptyOp.cpp
+  lib/ops/VectorOps.cpp
   lib/ops/SideEffectInterface.cpp
   lib/pass/PassManager.cpp
   lib/pass/CanonicalizePass.cpp
   lib/pass/CsePass.cpp
   lib/pass/FuseAddReluPass.cpp
   lib/pass/TileGenericPass.cpp
+  lib/pass/VectorizeGenericPass.cpp
   lib/analysis/UseCountAnalysis.cpp
   lib/analysis/AnalysisManager.cpp
   lib/interpreter/Interpreter.cpp
@@ -126,4 +128,8 @@ if(BUILD_TESTING)
   add_executable(tile-generic-test tests/tile_generic.cpp)
   target_link_libraries(tile-generic-test PRIVATE mini_ir)
   add_test(NAME tile-generic COMMAND tile-generic-test)
+
+  add_executable(vector-ops-test tests/vector_ops.cpp)
+  target_link_libraries(vector-ops-test PRIVATE mini_ir)
+  add_test(NAME vector-ops COMMAND vector-ops-test)
 endif()
