@@ -17,6 +17,7 @@
 #include "mini/ops/MiniGenericOp.h"
 #include "mini/ops/TensorEmptyOp.h"
 #include "mini/ops/TilingOps.h"
+#include "mini/ops/VectorOps.h"
 
 namespace mini::interpreter {
 namespace {
@@ -76,6 +77,11 @@ TensorData evaluateGeneric(const ir::Operation& generic,
 
 using TensorValues = std::unordered_map<const ir::Value*, TensorData>;
 
+struct VectorData {
+  ir::Type type;
+  std::vector<float> lanes;
+};
+
 TensorData evaluateLoop(const ir::Operation& loop, const TensorValues& outer) {
   const auto bound = [&loop](std::string_view key) -> std::int64_t {
     return std::get<std::int64_t>(*loop.findAttribute(key));
@@ -88,12 +94,21 @@ TensorData evaluateLoop(const ir::Operation& loop, const TensorValues& outer) {
 
   for (std::int64_t iv = lower; iv < upper;) {
     TensorValues local;
+    std::unordered_map<const ir::Value*, VectorData> vectors;
     local.emplace(body.arguments()[1].get(), carried);
     const auto lookupTensor = [&local, &outer](const ir::Value* value)
         -> const TensorData& {
       if (const auto it = local.find(value); it != local.end()) return it->second;
       if (const auto it = outer.find(value); it != outer.end()) return it->second;
       throw std::invalid_argument("use of unavailable tensor SSA value in scf.for");
+    };
+    const auto lookupVector = [&vectors](const ir::Value* value)
+        -> const VectorData& {
+      const auto it = vectors.find(value);
+      if (it == vectors.end()) {
+        throw std::invalid_argument("use of unavailable vector SSA value in scf.for");
+      }
+      return it->second;
     };
     const auto lookupIndex = [&body, iv](const ir::Value* value) -> std::size_t {
       if (value != body.arguments()[0].get() || iv < 0) {
@@ -118,6 +133,31 @@ TensorData evaluateLoop(const ir::Operation& loop, const TensorValues& outer) {
         local.emplace(&child->result(0),
                       evaluateGeneric(*child, lookupTensor(child->operands()[0]),
                                       lookupTensor(child->operands()[1])));
+      } else if (child->name() == ops::VectorFromTensorOp::name) {
+        const TensorData& source = lookupTensor(child->operands()[0]);
+        vectors.emplace(&child->result(0),
+                        VectorData{child->result(0).type(), source.elements});
+      } else if (child->name() == ops::VectorAddOp::name) {
+        const VectorData& lhs = lookupVector(child->operands()[0]);
+        const VectorData& rhs = lookupVector(child->operands()[1]);
+        std::vector<float> lanes(lhs.lanes.size());
+        for (std::size_t i = 0; i < lanes.size(); ++i) {
+          lanes[i] = lhs.lanes[i] + rhs.lanes[i];
+        }
+        vectors.emplace(&child->result(0),
+                        VectorData{child->result(0).type(), std::move(lanes)});
+      } else if (child->name() == ops::VectorReluOp::name) {
+        const VectorData& input = lookupVector(child->operands()[0]);
+        std::vector<float> lanes(input.lanes.size());
+        for (std::size_t i = 0; i < lanes.size(); ++i) {
+          lanes[i] = std::max(input.lanes[i], 0.0f);
+        }
+        vectors.emplace(&child->result(0),
+                        VectorData{child->result(0).type(), std::move(lanes)});
+      } else if (child->name() == ops::VectorToTensorOp::name) {
+        const VectorData& input = lookupVector(child->operands()[0]);
+        local.emplace(&child->result(0),
+                      TensorData{child->result(0).type(), input.lanes});
       } else if (child->name() == ops::TensorInsertSliceOp::name) {
         const TensorData& tile = lookupTensor(child->operands()[0]);
         TensorData updated = lookupTensor(child->operands()[1]);

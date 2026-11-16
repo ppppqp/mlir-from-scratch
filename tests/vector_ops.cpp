@@ -1,4 +1,5 @@
 #include "mini/ir/Block.h"
+#include "mini/interpreter/Interpreter.h"
 #include "mini/ir/Operation.h"
 #include "mini/ir/Region.h"
 #include "mini/ir/Verify.h"
@@ -63,6 +64,15 @@ int main() {
       "func.return", std::vector<Value*>{&generic.result(0)},
       std::vector<Type>{}));
 
+  using mini::interpreter::TensorData;
+  std::vector<TensorData> inputs{
+      {full, std::vector<float>(18)}, {full, std::vector<float>(18)}};
+  for (std::size_t i = 0; i < 18; ++i) {
+    inputs[0].elements[i] = static_cast<float>(i) - 12.0f;
+    inputs[1].elements[i] = 3.0f - static_cast<float>(i % 5);
+  }
+  const TensorData before = mini::interpreter::runFunction(function, inputs);
+
   mini::pass::PassManager manager("func.func");
   manager.addPass(std::make_unique<mini::pass::TileGenericPass>());
   manager.addPass(std::make_unique<mini::pass::VectorizeGenericPass>());
@@ -78,4 +88,9 @@ int main() {
   assert(loopOps[4]->name() == "vector.add");
   assert(loopOps[5]->name() == "vector.relu");
   assert(loopOps[6]->name() == "vector.to_tensor");
+  const TensorData after = mini::interpreter::runFunction(function, inputs);
+  assert(after.type == before.type);
+  assert(after.elements == before.elements);
+  assert(after.elements[16] == 6.0f);
+  assert(after.elements[17] == 6.0f);
 }
