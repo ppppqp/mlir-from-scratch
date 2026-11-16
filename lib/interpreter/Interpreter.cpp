@@ -1,6 +1,7 @@
 #include "mini/interpreter/Interpreter.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -14,6 +15,8 @@
 #include "mini/ops/MiniDpsAddOp.h"
 #include "mini/ops/MiniDpsReluOp.h"
 #include "mini/ops/MiniGenericOp.h"
+#include "mini/ops/TensorEmptyOp.h"
+#include "mini/ops/TilingOps.h"
 
 namespace mini::interpreter {
 namespace {
@@ -71,6 +74,73 @@ TensorData evaluateGeneric(const ir::Operation& generic,
   return TensorData{generic.result(0).type(), std::move(result)};
 }
 
+using TensorValues = std::unordered_map<const ir::Value*, TensorData>;
+
+TensorData evaluateLoop(const ir::Operation& loop, const TensorValues& outer) {
+  const auto bound = [&loop](std::string_view key) -> std::int64_t {
+    return std::get<std::int64_t>(*loop.findAttribute(key));
+  };
+  const std::int64_t lower = bound("lower_bound");
+  const std::int64_t upper = bound("upper_bound");
+  const std::int64_t step = bound("step");
+  const ir::Block& body = *loop.regions()[0]->blocks()[0];
+  TensorData carried = outer.at(loop.operands()[0]);
+
+  for (std::int64_t iv = lower; iv < upper;) {
+    TensorValues local;
+    local.emplace(body.arguments()[1].get(), carried);
+    const auto lookupTensor = [&local, &outer](const ir::Value* value)
+        -> const TensorData& {
+      if (const auto it = local.find(value); it != local.end()) return it->second;
+      if (const auto it = outer.find(value); it != outer.end()) return it->second;
+      throw std::invalid_argument("use of unavailable tensor SSA value in scf.for");
+    };
+    const auto lookupIndex = [&body, iv](const ir::Value* value) -> std::size_t {
+      if (value != body.arguments()[0].get() || iv < 0) {
+        throw std::invalid_argument("use of unavailable index SSA value in scf.for");
+      }
+      return static_cast<std::size_t>(iv);
+    };
+
+    for (const auto& child : body.operations()) {
+      if (child->name() == ops::TensorExtractSliceOp::name) {
+        const TensorData& source = lookupTensor(child->operands()[0]);
+        const std::size_t offset = lookupIndex(child->operands()[1]);
+        if (offset >= source.elements.size()) {
+          throw std::invalid_argument("tensor.extract_slice offset out of bounds");
+        }
+        std::vector<float> tile(elementCount(child->result(0).type()), 0.0f);
+        const std::size_t valid = std::min(tile.size(), source.elements.size() - offset);
+        std::copy_n(source.elements.begin() + offset, valid, tile.begin());
+        local.emplace(&child->result(0),
+                      TensorData{child->result(0).type(), std::move(tile)});
+      } else if (child->name() == ops::MiniGenericOp::name) {
+        local.emplace(&child->result(0),
+                      evaluateGeneric(*child, lookupTensor(child->operands()[0]),
+                                      lookupTensor(child->operands()[1])));
+      } else if (child->name() == ops::TensorInsertSliceOp::name) {
+        const TensorData& tile = lookupTensor(child->operands()[0]);
+        TensorData updated = lookupTensor(child->operands()[1]);
+        const std::size_t offset = lookupIndex(child->operands()[2]);
+        if (offset >= updated.elements.size()) {
+          throw std::invalid_argument("tensor.insert_slice offset out of bounds");
+        }
+        const std::size_t valid =
+            std::min(tile.elements.size(), updated.elements.size() - offset);
+        std::copy_n(tile.elements.begin(), valid, updated.elements.begin() + offset);
+        local.emplace(&child->result(0), std::move(updated));
+      } else if (child->name() == ops::ScfYieldOp::name) {
+        carried = lookupTensor(child->operands()[0]);
+      } else {
+        throw std::invalid_argument("unsupported operation in scf.for body");
+      }
+    }
+    if (upper - iv <= step) break;
+    iv += step;
+  }
+  return carried;
+}
+
 }  // namespace
 
 TensorData runFunction(const ir::Operation& function,
@@ -85,7 +155,7 @@ TensorData runFunction(const ir::Operation& function,
     throw std::invalid_argument(
         "function input count does not match arguments");
   }
-  std::unordered_map<const ir::Value*, TensorData> values;
+  TensorValues values;
   for (std::size_t i = 0; i < inputs.size(); ++i) {
     if (inputs[i].type != block.arguments()[i]->type() ||
         inputs[i].elements.size() != elementCount(inputs[i].type)) {
@@ -116,13 +186,28 @@ TensorData runFunction(const ir::Operation& function,
     const bool isRelu = operation.name() == "mini.relu" ||
                         operation.name() == ops::MiniDpsReluOp::name;
     if (!isAdd && !isRelu && operation.name() != "mini.matmul" &&
-        operation.name() != ops::MiniGenericOp::name) {
+        operation.name() != ops::MiniGenericOp::name &&
+        operation.name() != ops::TensorEmptyOp::name &&
+        operation.name() != ops::ScfForOp::name) {
       throw std::invalid_argument("unsupported interpreter operation: " +
                                   std::string(operation.name()));
     }
     std::string error;
     if (!ir::verifyOperation(operation, error)) {
       throw std::invalid_argument(error);
+    }
+
+    if (operation.name() == ops::TensorEmptyOp::name) {
+      values.emplace(&operation.result(0),
+                     TensorData{operation.result(0).type(),
+                                std::vector<float>(
+                                    elementCount(operation.result(0).type()),
+                                    std::numeric_limits<float>::quiet_NaN())});
+      continue;
+    }
+    if (operation.name() == ops::ScfForOp::name) {
+      values.emplace(&operation.result(0), evaluateLoop(operation, values));
+      continue;
     }
 
     if (operation.name() == ops::MiniGenericOp::name) {

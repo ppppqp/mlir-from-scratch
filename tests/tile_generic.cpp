@@ -2,6 +2,7 @@
 #include "mini/ir/Operation.h"
 #include "mini/ir/Region.h"
 #include "mini/ir/Verify.h"
+#include "mini/interpreter/Interpreter.h"
 #include "mini/ops/SideEffectInterface.h"
 #include "mini/pass/PassManager.h"
 #include "mini/pass/TileGenericPass.h"
@@ -46,6 +47,15 @@ int main() {
       std::vector<Type>{}));
   assert(mini::ir::verifyOperation(generic, error));
 
+  using mini::interpreter::TensorData;
+  std::vector<TensorData> inputs{
+      {full, std::vector<float>(18)}, {full, std::vector<float>(18)}};
+  for (std::size_t i = 0; i < 18; ++i) {
+    inputs[0].elements[i] = static_cast<float>(i);
+    inputs[1].elements[i] = static_cast<float>(18 - i);
+  }
+  const TensorData untiled = mini::interpreter::runFunction(function, inputs);
+
   mini::pass::PassManager manager("func.func");
   manager.addPass(std::make_unique<mini::pass::TileGenericPass>());
   assert(manager.run(function, error));
@@ -65,6 +75,11 @@ int main() {
   assert(loopOps[2]->name() == "mini.generic");
   assert(loopOps[3]->name() == "tensor.insert_slice");
   assert(loopOps[4]->name() == "scf.yield");
+  const TensorData tiled = mini::interpreter::runFunction(function, inputs);
+  assert(tiled.type == untiled.type);
+  assert(tiled.elements == untiled.elements);
+  assert(tiled.elements.size() == 18);
+  assert(tiled.elements[16] == 18.0f && tiled.elements[17] == 18.0f);
 
   const Type divisible = Type::tensor({16});
   Operation exact("func.func", {}, {});
@@ -83,8 +98,16 @@ int main() {
   exactBlock.append(std::make_unique<Operation>(
       "func.return", std::vector<Value*>{&exactGeneric.result(0)},
       std::vector<Type>{}));
+  const std::vector<TensorData> exactInputs{
+      {divisible, std::vector<float>(16, 3.0f)},
+      {divisible, std::vector<float>(16, -5.0f)}};
+  const TensorData exactUntiled =
+      mini::interpreter::runFunction(exact, exactInputs);
   assert(manager.run(exact, error));
   assert(exactBlock.operations().size() == 3);
   assert(std::get<std::int64_t>(
              *exactBlock.operations()[1]->findAttribute("upper_bound")) == 16);
+  const TensorData exactTiled =
+      mini::interpreter::runFunction(exact, exactInputs);
+  assert(exactTiled.elements == exactUntiled.elements);
 }

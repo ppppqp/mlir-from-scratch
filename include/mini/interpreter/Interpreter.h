@@ -19,7 +19,7 @@ struct TensorData {
 
 // Execute one func.func with a single entry block and one tensor result.
 // Supports mini.add, mini.relu, mini.matmul, mini.dps_add, mini.dps_relu,
-// and elementwise mini.generic with scalar_add/scalar_relu/yield.
+// elementwise mini.generic, tensor.empty, and the one-dimensional tiled loop.
 TensorData runFunction(const ir::Operation& function,
                        std::span<const TensorData> inputs);
 
