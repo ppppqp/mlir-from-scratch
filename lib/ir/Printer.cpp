@@ -39,6 +39,15 @@ std::string printType(const Type& type) {
   if (type.kind() == Type::Kind::F32) {
     return "f32";
   }
+  if (type.kind() == Type::Kind::Index) {
+    return "index";
+  }
+  if (type.kind() == Type::Kind::Vector) {
+    if (type.shape().size() != 1 || type.shape()[0] <= 0) {
+      throw std::invalid_argument("unsupported vector shape");
+    }
+    return "vector<" + std::to_string(type.shape()[0]) + "xf32>";
+  }
   const auto shape = type.shape();
   if (shape.empty() || shape.size() > 2) {
     throw std::invalid_argument("unsupported tensor rank");

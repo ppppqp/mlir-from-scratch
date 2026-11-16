@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mini/ops/OpSchema.h"
+
 #include <string>
 #include <string_view>
 
@@ -14,6 +16,11 @@ namespace mini::ops {
 class MiniDpsAddOp {
  public:
   static constexpr std::string_view name = "mini.dps_add";
+  static constexpr auto inputs = std::array{PortSpec{"lhs", "tensor<Nxf32>"},
+                                            PortSpec{"rhs", "tensor<Nxf32>"},
+                                            PortSpec{"init", "tensor<Nxf32>"}};
+  static constexpr auto outputs = std::array{PortSpec{"result", "tensor<Nxf32>"}};
+  static constexpr std::array<AttributeSpec, 0> attributes{};
   static constexpr unsigned outputOperandIndex = 2;
 
   explicit MiniDpsAddOp(const ir::Operation& operation);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mini/ops/OpSchema.h"
+
 #include <string>
 #include <string_view>
 
@@ -12,6 +14,13 @@ namespace mini::ops {
 class ScfForOp {
  public:
   static constexpr std::string_view name = "scf.for";
+  static constexpr auto inputs = std::array{PortSpec{"init", "tensor<Nxf32>"}};
+  static constexpr auto outputs = std::array{PortSpec{"result", "tensor<Nxf32>"}};
+  static constexpr auto attributes = std::array{
+      AttributeSpec{"lower_bound", "i64"},
+      AttributeSpec{"upper_bound", "i64"}, AttributeSpec{"step", "i64"}};
+  static constexpr std::string_view regionSignature =
+      "(iv: index, iter_arg: tensor<Nxf32>) -> tensor<Nxf32> via scf.yield";
   explicit ScfForOp(const ir::Operation& operation);
   bool verify(std::string& error) const;
 
@@ -22,6 +31,9 @@ class ScfForOp {
 class ScfYieldOp {
  public:
   static constexpr std::string_view name = "scf.yield";
+  static constexpr auto inputs = std::array{PortSpec{"value", "tensor<Nxf32>"}};
+  static constexpr std::array<PortSpec, 0> outputs{};
+  static constexpr std::array<AttributeSpec, 0> attributes{};
   explicit ScfYieldOp(const ir::Operation& operation);
   bool verify(std::string& error) const;
 
@@ -34,6 +46,12 @@ class ScfYieldOp {
 class TensorExtractSliceOp {
  public:
   static constexpr std::string_view name = "tensor.extract_slice";
+  static constexpr auto inputs = std::array{PortSpec{"source", "tensor<Nxf32>"},
+                                            PortSpec{"offset", "index"}};
+  static constexpr auto outputs =
+      std::array{PortSpec{"result", "tensor<tile_size x f32>"}};
+  static constexpr auto attributes =
+      std::array{AttributeSpec{"tile_size", "i64"}};
   explicit TensorExtractSliceOp(const ir::Operation& operation);
   bool verify(std::string& error) const;
 
@@ -45,6 +63,12 @@ class TensorExtractSliceOp {
 class TensorInsertSliceOp {
  public:
   static constexpr std::string_view name = "tensor.insert_slice";
+  static constexpr auto inputs = std::array{
+      PortSpec{"tile", "tensor<tile_size x f32>"},
+      PortSpec{"destination", "tensor<Nxf32>"}, PortSpec{"offset", "index"}};
+  static constexpr auto outputs = std::array{PortSpec{"result", "tensor<Nxf32>"}};
+  static constexpr auto attributes =
+      std::array{AttributeSpec{"tile_size", "i64"}};
   explicit TensorInsertSliceOp(const ir::Operation& operation);
   bool verify(std::string& error) const;
 

@@ -11,6 +11,7 @@
 #include "mini/ir/Region.h"
 #include "mini/ir/Verify.h"
 #include "mini/ops/MiniGenericOp.h"
+#include "mini/ops/VectorOps.h"
 
 namespace mini::ops {
 namespace {
@@ -83,6 +84,10 @@ bool ScfForOp::verify(std::string& error) const {
     if (child.name() != TensorExtractSliceOp::name &&
         child.name() != TensorInsertSliceOp::name &&
         child.name() != MiniGenericOp::name &&
+        child.name() != VectorFromTensorOp::name &&
+        child.name() != VectorAddOp::name &&
+        child.name() != VectorReluOp::name &&
+        child.name() != VectorToTensorOp::name &&
         child.name() != ScfYieldOp::name) {
       error = "scf.for body contains unsupported operation";
       return false;

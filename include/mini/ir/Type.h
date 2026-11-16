@@ -6,14 +6,15 @@
 
 namespace mini::ir {
 
-// f32 scalars, index values, and statically shaped f32 tensors.
+// f32 scalars, index values, and statically shaped f32 tensors/vectors.
 class Type {
  public:
-  enum class Kind { F32, Index, Tensor };
+  enum class Kind { F32, Index, Tensor, Vector };
 
   static Type f32();
   static Type index();
   static Type tensor(std::vector<std::int64_t> shape);
+  static Type vector(std::vector<std::int64_t> shape);
 
   Kind kind() const { return kind_; }
   std::span<const std::int64_t> shape() const { return shape_; }

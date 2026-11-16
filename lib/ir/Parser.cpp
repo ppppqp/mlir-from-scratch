@@ -175,6 +175,17 @@ class Reader {
     if (consumeWord("f32")) {
       return Type::f32();
     }
+    if (consumeWord("index")) {
+      return Type::index();
+    }
+    if (consumeWord("vector")) {
+      expect('<');
+      const std::int64_t width = parseDimension();
+      expect('x');
+      expectWord("f32");
+      expect('>');
+      return Type::vector({width});
+    }
     expectWord("tensor");
     expect('<');
     const std::int64_t first = parseDimension();

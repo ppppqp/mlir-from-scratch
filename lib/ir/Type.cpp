@@ -15,4 +15,8 @@ Type Type::tensor(std::vector<std::int64_t> shape) {
   return Type(Kind::Tensor, std::move(shape));
 }
 
+Type Type::vector(std::vector<std::int64_t> shape) {
+  return Type(Kind::Vector, std::move(shape));
+}
+
 }  // namespace mini::ir

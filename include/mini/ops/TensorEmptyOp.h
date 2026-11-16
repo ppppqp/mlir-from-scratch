@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mini/ops/OpSchema.h"
+
 #include <string>
 #include <string_view>
 
@@ -14,6 +16,9 @@ namespace mini::ops {
 class TensorEmptyOp {
  public:
   static constexpr std::string_view name = "tensor.empty";
+  static constexpr std::array<PortSpec, 0> inputs{};
+  static constexpr auto outputs = std::array{PortSpec{"result", "tensor<Nxf32>"}};
+  static constexpr std::array<AttributeSpec, 0> attributes{};
   explicit TensorEmptyOp(const ir::Operation& operation);
   static constexpr bool hasSideEffects() { return false; }
   bool verify(std::string& error) const;
