@@ -9,6 +9,7 @@
 #include "mini/ops/MiniDpsReluOp.h"
 #include "mini/ops/MiniMatmulOp.h"
 #include "mini/ops/MiniReluOp.h"
+#include "mini/ops/TensorEmptyOp.h"
 
 namespace mini::ops {
 namespace {
@@ -24,6 +25,7 @@ constexpr std::array entries{
     Entry{MiniMatmulOp::name, MiniMatmulOp::hasSideEffects()},
     Entry{MiniDpsAddOp::name, MiniDpsAddOp::hasSideEffects()},
     Entry{MiniDpsReluOp::name, MiniDpsReluOp::hasSideEffects()},
+    Entry{TensorEmptyOp::name, TensorEmptyOp::hasSideEffects()},
 };
 
 }  // namespace

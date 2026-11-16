@@ -27,11 +27,13 @@ add_library(mini_ir STATIC
   lib/ops/MiniScalarReluOp.cpp
   lib/ops/MiniYieldOp.cpp
   lib/ops/TilingOps.cpp
+  lib/ops/TensorEmptyOp.cpp
   lib/ops/SideEffectInterface.cpp
   lib/pass/PassManager.cpp
   lib/pass/CanonicalizePass.cpp
   lib/pass/CsePass.cpp
   lib/pass/FuseAddReluPass.cpp
+  lib/pass/TileGenericPass.cpp
   lib/analysis/UseCountAnalysis.cpp
   lib/analysis/AnalysisManager.cpp
   lib/interpreter/Interpreter.cpp
@@ -120,4 +122,8 @@ if(BUILD_TESTING)
   add_executable(tiling-ops-test tests/tiling_ops.cpp)
   target_link_libraries(tiling-ops-test PRIVATE mini_ir)
   add_test(NAME tiling-ops COMMAND tiling-ops-test)
+
+  add_executable(tile-generic-test tests/tile_generic.cpp)
+  target_link_libraries(tile-generic-test PRIVATE mini_ir)
+  add_test(NAME tile-generic COMMAND tile-generic-test)
 endif()
